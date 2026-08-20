@@ -1,0 +1,19 @@
+services:
+  oracle:
+    image: gvenzl/oracle-free:latest
+    container_name: inventario-oracle
+    restart: always
+
+    environment:
+      - ORACLE_PASSWORD=oracle_password
+      - APP_USER=INVENTARIO_USER
+      - APP_USER_PASSWORD=inventario_password
+
+    ports:
+      - "1521:1521"
+
+    volumes:
+      - oracle_data:/container-entrypoint-initdb.d
+
+volumes:
+  oracle_data:
