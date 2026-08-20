@@ -1,0 +1,44 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+enum ActiveStatus {
+  AVAILABLE
+  ASSIGNED
+  MAINTENANCE
+  RETIRED
+}
+
+class Category {
+  - Long id
+  - String name
+  - String code
+}
+
+class Active {
+  - Long id
+  - String folio
+  - String serialNumber
+  - String model
+  - ActiveStatus status
+  - BigDecimal acquisitionCost
+  - LocalDate dateOfEntry
+}
+
+class AssetHistory {
+  - Long id
+  - ActiveStatus oldStatus
+  - ActiveStatus newStatus
+  - String justification
+  - LocalDateTime changeDate
+  - String user
+}
+
+Category "1" -- "0..*" Active : clasifica >
+Active "1" -- "0..*" AssetHistory : registra cambios >
+
+note right of Active::folio
+  Formato: PREFIJO-YYYY-XXXX
+  Ejemplo: LAP-2026-0001
+end note
+
+@enduml
