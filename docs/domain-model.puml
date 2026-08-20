@@ -1,7 +1,7 @@
 @startuml
 skinparam classAttributeIconSize 0
 
-enum ActiveStatus {
+enum AssetStatus {
   AVAILABLE
   ASSIGNED
   MAINTENANCE
@@ -14,29 +14,31 @@ class Category {
   - String code
 }
 
-class Active {
+class Asset {
   - Long id
   - String folio
   - String serialNumber
   - String model
-  - ActiveStatus status
+  - AssetStatus status
   - BigDecimal acquisitionCost
   - LocalDate dateOfEntry
+  - String location
+  - String assignedTo
 }
 
 class AssetHistory {
   - Long id
-  - ActiveStatus oldStatus
-  - ActiveStatus newStatus
+  - AssetStatus oldStatus
+  - AssetStatus newStatus
   - String justification
   - LocalDateTime changeDate
-  - String user
+  - String changedBy
 }
 
-Category "1" -- "0..*" Active : clasifica >
-Active "1" -- "0..*" AssetHistory : registra cambios >
+Category "1" -- "0..*" Asset : clasifica >
+Asset "1" -- "0..*" AssetHistory : registra cambios >
 
-note right of Active::folio
+note right of Asset::folio
   Formato: PREFIJO-YYYY-XXXX
   Ejemplo: LAP-2026-0001
 end note
