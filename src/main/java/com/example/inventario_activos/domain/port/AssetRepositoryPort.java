@@ -17,4 +17,6 @@ public interface AssetRepositoryPort {
     
     boolean existsBySerialNumber(String serialNumber);
 
+    long countByFolioStartingWith(String prefix);
+
 }

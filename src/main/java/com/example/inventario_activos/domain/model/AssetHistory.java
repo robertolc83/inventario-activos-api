@@ -1,6 +1,7 @@
 package com.example.inventario_activos.domain.model;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import com.example.inventario_activos.domain.enums.AssetStatus;
 
@@ -15,14 +16,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Entity
 @Table(name = "asset_history")
@@ -52,5 +53,23 @@ public class AssetHistory {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "asset_id", nullable = false)
     private Asset asset;
+
+    public static AssetHistory create(
+        Asset asset,
+        AssetStatus oldStatus,
+        AssetStatus newStatus,
+        String justification,
+        String changedBy) {
+
+        AssetHistory history = new AssetHistory();
+        history.asset = Objects.requireNonNull(asset, "El activo es obligatorio");
+        history.oldStatus = oldStatus;
+        history.newStatus = Objects.requireNonNull(newStatus, "El nuevo estado es obligatorio");
+        history.justification = Objects.requireNonNull(justification, "La justificación es obligatoria");
+        history.changeDate = LocalDateTime.now();
+        history.changedBy = Objects.requireNonNull(changedBy);
+
+        return history;
+    }
 
 }

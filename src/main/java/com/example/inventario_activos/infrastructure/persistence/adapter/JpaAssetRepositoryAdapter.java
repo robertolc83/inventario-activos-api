@@ -34,12 +34,17 @@ public class JpaAssetRepositoryAdapter implements AssetRepositoryPort {
 
     @Override
     public List<Asset> findAll() {
-        return repository.findAll();
+        return repository.findAllWithCategory();
     }
 
     @Override
     public boolean existsBySerialNumber(String serialNumber) {
         return repository.existsBySerialNumber(serialNumber);
+    }
+
+    @Override
+    public long countByFolioStartingWith(String prefix) {
+        return repository.countByFolioStartingWith(prefix);
     }
 
 }
