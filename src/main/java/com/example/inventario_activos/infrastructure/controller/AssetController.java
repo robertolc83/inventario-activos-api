@@ -13,9 +13,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.inventario_activos.application.dto.request.AssetFilterRequestDTO;
 import com.example.inventario_activos.application.dto.request.AssetHistoryRequestDTO;
 import com.example.inventario_activos.application.dto.request.AssetRequestDTO;
 import com.example.inventario_activos.application.dto.response.AssetResponseDTO;
+import com.example.inventario_activos.application.dto.response.ExportZipResponseDTO;
+import com.example.inventario_activos.application.service.ExportService;
 import com.example.inventario_activos.application.usecase.AssetUseCase;
 
 import jakarta.validation.Valid;
@@ -27,11 +30,18 @@ import lombok.RequiredArgsConstructor;
 public class AssetController {
 
     private final AssetUseCase assetUseCase;
+    private final ExportService exportService;
 
     @PostMapping
     public ResponseEntity<AssetResponseDTO> createAsset(@Valid @RequestBody AssetRequestDTO request) {
         AssetResponseDTO response = assetUseCase.createAsset(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/export/zip")
+    public ResponseEntity<ExportZipResponseDTO> exportAssetsToZip(@RequestBody AssetFilterRequestDTO filters) {
+        ExportZipResponseDTO response = exportService.generateAssetsZipReport(filters);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")

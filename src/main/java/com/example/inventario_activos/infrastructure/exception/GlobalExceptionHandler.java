@@ -16,6 +16,9 @@ import com.example.inventario_activos.domain.exception.asset.AssetSerialNumberAl
 import com.example.inventario_activos.domain.exception.category.CategoryCodeAlreadyExistsException;
 import com.example.inventario_activos.domain.exception.category.CategoryNotFoundException;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -57,6 +60,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGenericException(Exception ex) {
+        log.error("Excepción no controlada detectada: ", ex);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor: " + ex.getMessage());
     }
 
