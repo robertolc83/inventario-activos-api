@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.example.inventario_activos.application.dto.request.AssetHistoryRequestDTO;
@@ -12,6 +13,8 @@ import com.example.inventario_activos.application.dto.request.CategoryRequestDTO
 import com.example.inventario_activos.application.usecase.AssetUseCase;
 import com.example.inventario_activos.application.usecase.CategoryUseCase;
 import com.example.inventario_activos.domain.enums.AssetStatus;
+import com.example.inventario_activos.domain.model.User;
+import com.example.inventario_activos.infrastructure.persistence.repository.JpaUserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +26,30 @@ public class DataInitializer implements CommandLineRunner{
 
     private final CategoryUseCase categoryUseCase;
     private final AssetUseCase assetUseCase;
+    private final JpaUserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
+
+        if (userRepository.count() == 0) {
+            // Usuario ADMIN
+            userRepository.save(User.builder()
+                    .username("admin")
+                    .password(passwordEncoder.encode("admin123"))
+                    .role("ADMIN")
+                    .build());
+
+            // Usuario USER
+            userRepository.save(User.builder()
+                    .username("user")
+                    .password(passwordEncoder.encode("user123"))
+                    .role("USER")
+                    .build());
+            
+             log.info("✅ Usuarios creados: admin/admin123 y user/user123");
+        }
+
         if (!categoryUseCase.getAllCategories().isEmpty()) {
             log.info("Carga de datos omitida: La base de datos ya contiene información.");
             return;

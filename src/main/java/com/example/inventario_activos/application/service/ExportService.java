@@ -12,6 +12,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,9 +55,11 @@ public class ExportService {
             zipOut.closeEntry();
 
             zipOut.finish();
+            zipOut.flush();
 
             // 4. Convertir ZIP completo a Base64
-            String base64Encoded = Base64.getEncoder().encodeToString(zipByteStream.toByteArray());
+            byte[] zipBytes = zipByteStream.toByteArray();
+            String base64Encoded = Base64.getEncoder().encodeToString(zipBytes);
 
             return ExportZipResponseDTO.builder()
                     .status(200)
@@ -105,10 +108,15 @@ public class ExportService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         String currentDateTime = LocalDateTime.now().format(formatter);
 
+        // Obtiene el usuario autenticado desde el JWT
+        String currentUser = SecurityContextHolder.getContext().getAuthentication() != null 
+            ? SecurityContextHolder.getContext().getAuthentication().getName() 
+            : "ANONYMOUS";
+
         StringBuilder sb = new StringBuilder();
         sb.append("=== DOCUMENTO DE AUDITORÍA ===\n\n");
         sb.append("Fecha y Hora de Generación: ").append(currentDateTime).append("\n");
-        sb.append("Usuario Solicitante: ADMIN (SYSTEM)\n");
+        sb.append("Usuario Solicitante: ").append(currentUser).append("\n");
         sb.append("Total de Registros Exportados: ").append(totalRecords).append("\n");
 
         return sb.toString().getBytes(StandardCharsets.UTF_8);
