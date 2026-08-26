@@ -29,19 +29,38 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    //Define los accesos por rol requeridos:
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1. Deshabilitar CSRF (necesario para APIs REST stateless)
             .csrf(AbstractHttpConfigurer::disable)
-            // 2. Aplicar la configuración de CORS a nivel de la cadena de filtros de seguridad
+            // Habilitar CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // 3. Permitir el acceso público a todos los endpoints de la API
+            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll()
-                .anyRequest().permitAll()
-            );
+                // 1. Endpoints públicos (Autenticación y Swagger/OpenAPI)
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html"
+                ).permitAll() // 👈 AQUÍ SE AGREGAN LAS RUTAS DE SWAGGER
+
+                // 2. USER y ADMIN: Consulta de información y exportación de reportes
+                .requestMatchers(HttpMethod.GET, "/api/assets/**").hasAnyRole("ADMIN", "USER")
+                .requestMatchers(HttpMethod.GET, "/api/categories/**").hasAnyRole("ADMIN", "USER")
+                .requestMatchers(HttpMethod.POST, "/api/assets/export/zip").hasAnyRole("ADMIN", "USER")
+
+                // 3. EXCLUSIVO ADMIN: Registro, edición y cambio de estado
+                .requestMatchers(HttpMethod.POST, "/api/assets").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/assets/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/assets/**").hasRole("ADMIN")
+
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+
     }
 
     @Bean
@@ -55,33 +74,6 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    //Define los accesos por rol requeridos:
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // Endpoint público para Autenticación
-                .requestMatchers("/api/auth/**").permitAll()
-
-                // USER y ADMIN: Consulta de información y exportación de reportes
-                .requestMatchers(HttpMethod.GET, "/api/assets/**").hasAnyRole("ADMIN", "USER")
-                .requestMatchers(HttpMethod.GET, "/api/categories/**").hasAnyRole("ADMIN", "USER")
-                .requestMatchers(HttpMethod.POST, "/api/assets/export/zip").hasAnyRole("ADMIN", "USER")
-
-                // EXCLUSIVO ADMIN: Registro, edición y cambio de estado
-                .requestMatchers(HttpMethod.POST, "/api/assets").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/assets/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PATCH, "/api/assets/**").hasRole("ADMIN")
-
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
     }
 
     @Bean
